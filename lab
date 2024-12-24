@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-
-// Функция подключения к базе данных
 pqxx::connection connectToDB() {
     try {
         return pqxx::connection("dbname=task_management_db user=buddy password=1234 hostaddr=127.0.0.1 port=1234");
@@ -14,8 +12,6 @@ pqxx::connection connectToDB() {
         throw;
     }
 }
-
-// Класс Task
 class Task {
 public:
     int id;
@@ -27,8 +23,6 @@ public:
     Task(int id, const std::string &title, const std::string &priority, const std::string &due_date, const std::string &status)
         : id(id), title(title), priority(priority), due_date(due_date), status(status) {}
 };
-
-// Класс User
 class User {
 public:
     int id;
@@ -36,8 +30,6 @@ public:
 
     User(int id, const std::string &name) : id(id), name(name) {}
 };
-
-// Класс TaskAssignment
 class TaskAssignment {
 public:
     int assignment_id;
@@ -47,8 +39,6 @@ public:
     TaskAssignment(int assignment_id, int task_id, int user_id)
         : assignment_id(assignment_id), task_id(task_id), user_id(user_id) {}
 };
-
-// Шаблонный класс Pair
 template <typename T1, typename T2>
 class Pair {
 public:
@@ -57,16 +47,12 @@ public:
 
     Pair(const T1 &first, const T2 &second) : first(first), second(second) {}
 };
-
-// Логирование операций
 void logOperation(const std::string &operation) {
     std::ofstream logFile("log.txt", std::ios::app);
     if (logFile.is_open()) {
         logFile << operation << std::endl;
     }
 }
-
-// Добавление задачи
 void addTask(const std::string &title, const std::string &priority, const std::string &due_date, const std::string &status) {
     try {
         pqxx::connection conn = connectToDB();
@@ -83,8 +69,6 @@ void addTask(const std::string &title, const std::string &priority, const std::s
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
-
-// Добавление пользователя
 void addUser(const std::string &name) {
     try {
         pqxx::connection conn = connectToDB();
@@ -100,8 +84,6 @@ void addUser(const std::string &name) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
-
-// Пример меню
 void showMenu() {
     int choice;
     do {
