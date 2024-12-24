@@ -1,0 +1,150 @@
+#include <iostream>
+#include <pqxx/pqxx>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <memory>
+
+// Функция подключения к базе данных
+pqxx::connection connectToDB() {
+    try {
+        return pqxx::connection("dbname=task_management_db user=buddy password=1234 hostaddr=127.0.0.1 port=1234");
+    } catch (const std::exception &e) {
+        std::cerr << "Connection error: " << e.what() << std::endl;
+        throw;
+    }
+}
+
+// Класс Task
+class Task {
+public:
+    int id;
+    std::string title;
+    std::string priority;
+    std::string due_date;
+    std::string status;
+
+    Task(int id, const std::string &title, const std::string &priority, const std::string &due_date, const std::string &status)
+        : id(id), title(title), priority(priority), due_date(due_date), status(status) {}
+};
+
+// Класс User
+class User {
+public:
+    int id;
+    std::string name;
+
+    User(int id, const std::string &name) : id(id), name(name) {}
+};
+
+// Класс TaskAssignment
+class TaskAssignment {
+public:
+    int assignment_id;
+    int task_id;
+    int user_id;
+
+    TaskAssignment(int assignment_id, int task_id, int user_id)
+        : assignment_id(assignment_id), task_id(task_id), user_id(user_id) {}
+};
+
+// Шаблонный класс Pair
+template <typename T1, typename T2>
+class Pair {
+public:
+    T1 first;
+    T2 second;
+
+    Pair(const T1 &first, const T2 &second) : first(first), second(second) {}
+};
+
+// Логирование операций
+void logOperation(const std::string &operation) {
+    std::ofstream logFile("log.txt", std::ios::app);
+    if (logFile.is_open()) {
+        logFile << operation << std::endl;
+    }
+}
+
+// Добавление задачи
+void addTask(const std::string &title, const std::string &priority, const std::string &due_date, const std::string &status) {
+    try {
+        pqxx::connection conn = connectToDB();
+        pqxx::work txn(conn);
+
+        txn.exec("INSERT INTO tasks (title, priority, due_date, status) VALUES (" +
+                 txn.quote(title) + ", " + txn.quote(priority) + ", " + txn.quote(due_date) + ", " + txn.quote(status) + ")");
+
+        txn.commit();
+        std::cout << "Task added successfully!" << std::endl;
+
+        logOperation("Added task: " + title);
+    } catch (const std::exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+// Добавление пользователя
+void addUser(const std::string &name) {
+    try {
+        pqxx::connection conn = connectToDB();
+        pqxx::work txn(conn);
+
+        txn.exec("INSERT INTO users (name) VALUES (" + txn.quote(name) + ")");
+
+        txn.commit();
+        std::cout << "User added successfully!" << std::endl;
+
+        logOperation("Added user: " + name);
+    } catch (const std::exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+// Пример меню
+void showMenu() {
+    int choice;
+    do {
+        std::cout << "\nTask Management System\n";
+        std::cout << "1. Add Task\n";
+        std::cout << "2. Add User\n";
+        std::cout << "3. Exit\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            std::string title, priority, due_date, status;
+            std::cout << "Enter task title: ";
+            std::cin.ignore();
+            std::getline(std::cin, title);
+            std::cout << "Enter task priority (High/Medium/Low): ";
+            std::getline(std::cin, priority);
+            std::cout << "Enter due date (YYYY-MM-DD): ";
+            std::getline(std::cin, due_date);
+            std::cout << "Enter task status (Completed/In Progress/Deferred): ";
+            std::getline(std::cin, status);
+            addTask(title, priority, due_date, status);
+            break;
+        }
+        case 2: {
+            std::string name;
+            std::cout << "Enter user name: ";
+            std::cin.ignore();
+            std::getline(std::cin, name);
+            addUser(name);
+            break;
+        }
+        case 3:
+            std::cout << "Exiting...\n";
+            break;
+        default:
+            std::cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 3);
+}
+
+int main() {
+    showMenu();
+    return 0;
+}
